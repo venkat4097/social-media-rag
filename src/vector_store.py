@@ -1,29 +1,38 @@
+# src/vector_store.py
+
 from sentence_transformers import SentenceTransformer
-import chromadb
-from chromadb.config import Settings
-from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
+import faiss
+import numpy as np
 
-# In-memory ChromaDB client for Streamlit compatibility
-chroma_client = chromadb.Client(Settings(
-    chroma_db_impl="duckdb+parquet",
-    persist_directory=None
-))
+# Load embedding model
+embedder = SentenceTransformer("all-MiniLM-L6-v2")
 
-# Embedding function
-embedder = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+# In-memory FAISS index (for 384-d embeddings from MiniLM)
+dimension = 384
+faiss_index = faiss.IndexFlatL2(dimension)
 
-# Collection with embedder
-collection = chroma_client.get_or_create_collection(
-    name="tweets",
-    embedding_function=embedder
-)
+# Store original tweets for retrieval
+tweet_store = []
 
 def embed_and_store(tweets):
-    documents = [{"id": str(i), "document": tweet} for i, tweet in enumerate(tweets)]
-    for doc in documents:
-        collection.add(documents=[doc["document"]], ids=[doc["id"]])
+    global tweet_store
+
+    # Embed all tweets
+    embeddings = embedder.encode(tweets, convert_to_numpy=True)
+
+    # Add to FAISS index
+    faiss_index.add(embeddings)
+    tweet_store.extend(tweets)
+
     return "Embedding and storing complete"
 
 def query_tweets(query):
-    results = collection.query(query_texts=[query], n_results=5)
-    return results["documents"][0] if results["documents"] else []
+    query_embedding = embedder.encode([query], convert_to_numpy=True)
+    distances, indices = faiss_index.search(query_embedding, k=5)
+
+    results = []
+    for idx in indices[0]:
+        if idx < len(tweet_store):
+            results.append(tweet_store[idx])
+
+    return results if results else ["No matching tweets found."]

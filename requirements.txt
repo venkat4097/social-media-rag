@@ -5,3 +5,5 @@ langchain
 chromadb
 tweepy
 sentence-transformers
+faiss-cpu
+sentence-transformers

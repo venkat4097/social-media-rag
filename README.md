@@ -16,8 +16,8 @@ https://social-media-rag-3zxwaappspdphxypcu9xq7j.streamlit.app/
 git clone https://github.com/<your-username>/social-media-rag.git
 cd social-media-rag
 
-## 🔗 Summary
-
+# 🔗 Summary
+```
 The project is a Social Media Trend Analysis Tool using Retrieval-Augmented Generation (RAG). It fetches trending tweets, extracts keywords, stores embeddings in a vector store, and answers user queries using OpenAI.
 
 Key components:

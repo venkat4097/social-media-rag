@@ -5,7 +5,9 @@ from src.vector_store import embed_and_store, query_tweets
 from src.generator import generate_answer
 import os
 from dotenv import load_dotenv
-
+import nltk
+nltk.download('stopwords')
+nltk.download('punkt')  # if you're using tokenizers
 load_dotenv()
 
 st.title("🔥 Social Media RAG - Trending Topics")

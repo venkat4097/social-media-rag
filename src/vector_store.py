@@ -1,11 +1,22 @@
 from sentence_transformers import SentenceTransformer
 import chromadb
+from chromadb.config import Settings
 from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunction
 
-client = chromadb.Client()
-collection = client.get_or_create_collection("tweets")
+# In-memory ChromaDB client for Streamlit compatibility
+chroma_client = chromadb.Client(Settings(
+    chroma_db_impl="duckdb+parquet",
+    persist_directory=None
+))
 
+# Embedding function
 embedder = SentenceTransformerEmbeddingFunction(model_name="all-MiniLM-L6-v2")
+
+# Collection with embedder
+collection = chroma_client.get_or_create_collection(
+    name="tweets",
+    embedding_function=embedder
+)
 
 def embed_and_store(tweets):
     documents = [{"id": str(i), "document": tweet} for i, tweet in enumerate(tweets)]
